@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -24,6 +25,8 @@ class BusPage extends StatefulWidget {
 class _BusPageState extends State<BusPage> {
 
   get _routes => JagTran().getBuses();
+  int id = 0;
+
   @override
   initState() {
     super.initState();
@@ -35,29 +38,80 @@ class _BusPageState extends State<BusPage> {
     return Scaffold(
         drawer: MainDrawer(),
         appBar: AppBar(title: Text('JagTran')),
-        body: FutureBuilder<List<Route>>(
-            future: _routes,
-            builder: (BuildContext context, AsyncSnapshot<List<Route>> snapshot) {
-              if (snapshot.hasData) {
-                return Container(
-                  child: ListView.builder(
-                    itemCount: snapshot.data?.length,
-                    itemBuilder: (context, index) {
-                      Route? currentEntry = snapshot.data?[index];
-                      return ListTile(
-                        title: Text('${currentEntry?.name}'),
-                      );
-                    },
-                  ),
-                );
-              } else {
-                return CircularProgressIndicator();
-              }
-            }
-        )
+        body: ListView(
+          children: [
+            map(),
+            routeListBuilder(),
+          ]
+        ),
+    );
+  }
+  Image map() {
+    if (id == 0) {
+      late Image map;
+      Uint8List blankBytes = Base64Codec().decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+      map = Image.memory(blankBytes, height: 1);
+      return map;
+    }
+    else {
+      return Image.network("http://kindaconfused.com/assets/img/logo.jpg");
+    }
+  }
+  FutureBuilder<List<Route>> routeListBuilder() {
+    return FutureBuilder<List<Route>>(
+        future: _routes,
+        builder: (BuildContext context, AsyncSnapshot<List<Route>> snapshot) {
+          if (snapshot.hasData) {
+            return Container(
+              child: ListView.builder(
+                itemCount: snapshot.data?.length,
+                shrinkWrap: true,
+                physics: ClampingScrollPhysics(),
+                itemBuilder: (context, index) {
+                  Route? currentEntry = snapshot.data?[index];
+                  return ListTile(
+                      title: Text('${currentEntry?.name}'),
+                      onTap: (){
+                        if (currentEntry != null) {
+                          id = currentEntry.id;
+                        }
+
+                        //Navigator.push(
+                          //context,
+                          //MaterialPageRoute(builder: (context) => const MapView()),
+                        //);
+                      }
+                  );
+                },
+              ),
+            );
+          } else {
+            return Container(
+                child: const Center(
+                  child:
+                  CircularProgressIndicator(),
+                )
+            );
+
+          }
+        }
     );
   }
 }
+
+/*class MapView extends StatelessWidget {
+
+  const MapView({Key? key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: (
+        Center(child: Image.network("http://kindaconfused.com/assets/img/logo.jpg")
+        )
+      )
+    );
+  }
+}*/
 
 class JagTran {
   Future<List<Route>> getBuses() async {
