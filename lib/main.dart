@@ -13,7 +13,7 @@ class NoPaws extends StatelessWidget {
     return MaterialApp(
       title: appTitle,
       theme: ThemeData.dark(),
-      home: HomePage(title: appTitle),
+      home: const HomePage(title: appTitle),
     );
   }
 }
@@ -27,8 +27,25 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: const Center(
-        child: Text('NoPaws'),
+      body:
+      Column(
+        children: [
+          Image.asset("assets/nopaws.png", width: 300, height: 300),
+          const Text("Welcome to NoPaws", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text("NoPaws is a replacement mobile app for USA students"),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child:
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                  _buildButtonColumn(Colors.white, Icons.directions_bus, 'JagTran', context, MaterialPageRoute(builder: (context) => const BusPage())),
+                  _buildButtonColumn(Colors.white, Icons.school, 'Canvas', context, null),
+                ],
+              )
+          )
+
+        ],
       ),
       drawer: MainDrawer()
     );
@@ -50,14 +67,14 @@ class MainDrawer extends StatelessWidget {
           ),
           ListTile(
             title: const Text('Home'),
-            leading: Icon(Icons.house),
+            leading: const Icon(Icons.house),
             onTap: () {
               Navigator.popUntil(context, ModalRoute.withName('/'));
             },
           ),
           ListTile(
             title: const Text('JagTran'),
-            leading: Icon(Icons.directions_bus),
+            leading: const Icon(Icons.directions_bus),
             onTap: () {
               Navigator.push(
                 context,
@@ -68,7 +85,7 @@ class MainDrawer extends StatelessWidget {
           ),
           ListTile(
             title: const Text('Canvas'),
-            leading: Icon(Icons.school),
+            leading: const Icon(Icons.school),
             onTap: () {
               // Close the drawer
               Navigator.pop(context);
@@ -78,5 +95,40 @@ class MainDrawer extends StatelessWidget {
       ),
     );
   }
+}
+
+ElevatedButton _buildButtonColumn(Color color, IconData icon, String label, BuildContext cxt, MaterialPageRoute? rte) {
+  return ElevatedButton(
+    onPressed: () {
+      if (rte != null)
+        Navigator.push(cxt, rte);
+      else {
+        final notImp = const SnackBar(
+          content: const Text("Not implemented", style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.black,
+        );
+        ScaffoldMessenger.of(cxt).showSnackBar(notImp);
+      }
+    },
+    child: Container(
+        margin: const EdgeInsets.all(5),
+        child: Column(
+    mainAxisSize: MainAxisSize.min,
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(icon, color: color),
+      Container(
+        margin: const EdgeInsets.only(top: 8),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            color: color,
+          ),
+        ),
+      ),
+    ],
+  )));
 }
 
