@@ -1,0 +1,74 @@
+[
+    {
+      "id": 9,
+      "name": "19",
+      "lat": 30.69214,
+      "lon": -88.1857,
+      "heading": 4,
+      "route": 25,
+      "lastStop": 40,
+      "fields": {},
+      "bus_type": "bus",
+      "lastUpdate": 1644877547
+    },
+    {
+      "id": 18,
+      "name": "28",
+      "lat": 30.69592,
+      "lon": -88.19606,
+      "heading": 134,
+      "route": 25,
+      "lastStop": 5,
+      "fields": {},
+      "bus_type": "bus",
+      "lastUpdate": 1644876989
+    },
+    {
+      "id": 16,
+      "name": "26",
+      "lat": 30.68932,
+      "lon": -88.17416,
+      "heading": 90,
+      "route": 27,
+      "lastStop": 20,
+      "fields": {},
+      "bus_type": "bus",
+      "lastUpdate": 1644877549
+    },
+    {
+      "id": 15,
+      "name": "25",
+      "lat": 30.69809,
+      "lon": -88.17835,
+      "heading": 59,
+      "route": 28,
+      "lastStop": 12,
+      "fields": {},
+      "bus_type": "bus",
+      "lastUpdate": 1644877549
+    },
+    {
+      "id": 2,
+      "name": "12",
+      "lat": 30.69714,
+      "lon": -88.17802,
+      "heading": 3,
+      "route": 3,
+      "lastStop": 13,
+      "fields": {},
+      "bus_type": "bus",
+      "lastUpdate": 1644877550
+    },
+    {
+      "id": 14,
+      "name": "24",
+      "lat": 30.69651,
+      "lon": -88.17831,
+      "heading": 151,
+      "route": 26,
+      "lastStop": 13,
+      "fields": {},
+      "bus_type": "bus",
+      "lastUpdate": 1644877548
+    }
+  ]
