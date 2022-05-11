@@ -58,39 +58,50 @@ class _BusPageState extends State<BusPage> {
         future: _routes,
         builder: (BuildContext context, AsyncSnapshot<List<Map<Bus, Route>>> snapshot) {
           if (snapshot.hasData) {
-            return ListView.builder(
-                itemCount: (snapshot.data?.length)! + 1,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    index++;
-                    return mapBuilder();
-                  }
+            return RefreshIndicator(
+                child: ListView.builder(
+                    itemCount: (snapshot.data?.length)! + 1,
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        index++;
+                        return mapBuilder();
+                      }
 
-                  Map<Bus, Route> currentEntry = snapshot.data![index-1];
-                  return ListTile(
-                      title: Text(currentEntry.values.toList()[0].name),
-                      trailing: Switch(
-                        value: switchToggled[index] ?? false,
-                        onChanged: (value) {
-                          setState(() {
-                            switchToggled[index] = value;
-                            if (value) {
-                              _activeBuses.add(currentEntry.keys.toList()[0]);
-                            }
-                            else {
-                              for (Bus bus in _activeBuses) {
-                                if (bus.id == currentEntry.keys.toList()[0].id) {
-                                  _activeBuses.remove(bus);
-                                  break;
+                      Map<Bus, Route> currentEntry = snapshot.data![index-1];
+                      return ListTile(
+                        title: Text(currentEntry.values.toList()[0].name),
+                        trailing: Switch(
+                          value: switchToggled[index] ?? false,
+                          onChanged: (value) {
+                            setState(() {
+                              switchToggled[index] = value;
+                              if (value) {
+                                _activeBuses.add(currentEntry.keys.toList()[0]);
+                              }
+                              else {
+                                for (Bus bus in _activeBuses) {
+                                  if (bus.id == currentEntry.keys.toList()[0].id) {
+                                    _activeBuses.remove(bus);
+                                    break;
+                                  }
                                 }
                               }
-                            }
-                          });
-                        },
-                      ),
+                            });
+                          },
+                        ),
+                      );
+                    }
+                ),
+                onRefresh: () {
+                  return Future.delayed(
+                    // there is DEFINITELY a better way to do this what the FUCK am I even doing here
+                      Duration(microseconds: 1),
+                      () {
+                        setState(() {});
+                      }
                   );
-                }
-              );
+                },
+            );
           } else {
             return Container(
                 child: const Center(
