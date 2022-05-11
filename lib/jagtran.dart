@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -38,17 +37,16 @@ class _BusPageState extends State<BusPage> {
       future: _map,
       builder: (BuildContext context, AsyncSnapshot<Image> snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return CircularProgressIndicator();
+          return Container(
+            child: Image.asset("assets/placeholder-map.png"),
+          );
         }
         if (snapshot.hasData) {
             return (snapshot.data as Widget);
         } else {
-          return Container(
-              child: const Center(
-                child:
-                CircularProgressIndicator(),
-              )
-          );
+          return Center(
+                child: Image.asset("assets/placeholder-map.png"),
+              );
         }
       }
     );
@@ -64,7 +62,15 @@ class _BusPageState extends State<BusPage> {
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         index++;
-                        return mapBuilder();
+                        return Container(
+                          height: 400,
+                            child: Stack(
+                              children: <Widget>[
+                                Image.asset("assets/placeholder-map.png"),
+                                mapBuilder(),
+                              ]
+                            )
+                        );
                       }
 
                       Map<Bus, Route> currentEntry = snapshot.data![index-1];
@@ -158,10 +164,9 @@ class JagTran {
     return busMap;
   }
   Future<Image> getMap(List<Bus> buses) async {
-    Uint8List blankBytes = Base64Codec().decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
-    Image placeholderImage = Image.memory(blankBytes, height: 1);
+    String apikey = await rootBundle.loadString("assets/api.key");
     if (buses.isEmpty) {
-      return placeholderImage;
+      return Image.network("https://open.mapquestapi.com/staticmap/v5/map?key=$apikey&boundingBox=30.70309,-88.19106000000001,30.690920000000002,-88.18334999999999&margin=75");
     }
     double n = -1000;
     double e = -1000;
@@ -204,8 +209,7 @@ class JagTran {
     e -= 0.005;
     w += 0.005;
 
-    String apikey = await rootBundle.loadString("assets/api.key");
-    return Image.network("https://open.mapquestapi.com/staticmap/v5/map?key=$apikey&boundingBox=$n,$w,$s,$e&locations=$locations&margin=75");
+    return Image.network("https://open.mapquestapi.com/staticmap/v5/map?key=$apikey&boundingBox=$n,$w,$s,$e&locations=$locations&margin=50");
   }
 }
 
