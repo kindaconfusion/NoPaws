@@ -64,6 +64,7 @@ flutter:
     - assets/routes.json
     - assets/routesOriginal.json
     # temporary files please delete
+    - assets/api.key
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # chttps://flutter.dev/assets-and-images/#resolution-aware.
