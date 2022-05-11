@@ -10,14 +10,15 @@ class BusPage extends StatefulWidget {
 
   @override
   _BusPageState createState() => _BusPageState();
+
 }
 
 class _BusPageState extends State<BusPage> {
-
+  Map<int, bool> switchToggled = {};
   get _routes => JagTran().getRoutes();
-  int _routeId = 0;
-  int _busId = 0;
-  get _map => JagTran().getMap(_busId);
+  List<Bus> _activeBuses = List.empty(growable: true);
+  get _map => JagTran().getMap(_activeBuses);
+
 
   @override
   initState() {
@@ -52,10 +53,10 @@ class _BusPageState extends State<BusPage> {
       }
     );
   }
-  FutureBuilder<List<Map<int, Route?>>> routeListBuilder() {
-    return FutureBuilder<List<Map<int, Route?>>>(
+  FutureBuilder<List<Map<Bus, Route>>> routeListBuilder() {
+    return FutureBuilder<List<Map<Bus, Route>>>(
         future: _routes,
-        builder: (BuildContext context, AsyncSnapshot<List<Map<int, Route?>>> snapshot) {
+        builder: (BuildContext context, AsyncSnapshot<List<Map<Bus, Route>>> snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
                 itemCount: (snapshot.data?.length)! + 1,
@@ -64,18 +65,29 @@ class _BusPageState extends State<BusPage> {
                     index++;
                     return mapBuilder();
                   }
-                  Map<int, Route?>? currentEntry = snapshot.data?[index-1];
+
+                  Map<Bus, Route> currentEntry = snapshot.data![index-1];
                   return ListTile(
-                      title: Text('${currentEntry?.values.toList()[0]?.name}'),
-                      onTap: () {
-                        if (currentEntry != null) {
+                      title: Text(currentEntry.values.toList()[0].name),
+                      trailing: Switch(
+                        value: switchToggled[index] ?? false,
+                        onChanged: (value) {
                           setState(() {
-                            _routeId = currentEntry?.values.toList()[0]?.id ??
-                                0;
-                            _busId = currentEntry?.keys.toList()[0] ?? 0;
+                            switchToggled[index] = value;
+                            if (value) {
+                              _activeBuses.add(currentEntry.keys.toList()[0]);
+                            }
+                            else {
+                              for (Bus bus in _activeBuses) {
+                                if (bus.id == currentEntry.keys.toList()[0].id) {
+                                  _activeBuses.remove(bus);
+                                  break;
+                                }
+                              }
+                            }
                           });
-                        }
-                      }
+                        },
+                      ),
                   );
                 }
               );
@@ -94,7 +106,7 @@ class _BusPageState extends State<BusPage> {
 }
 
 class JagTran {
-  Future<List<Map<int, Route?>>> getRoutes() async {
+  Future<List<Map<Bus, Route>>> getRoutes() async {
     List<Route> routes;
     var routesJson = await rootBundle.loadString("assets/routesOriginal.json");
     var busesJson = await rootBundle.loadString("assets/buses.json");
@@ -103,12 +115,13 @@ class JagTran {
     List<Bus> buses = (json.decode(busesJson) as List).map((i) =>
         Bus.fromJson(i)).toList();
     Map<int, Route> routeNums = {};
-    List<Map<int, Route?>> list = List.empty(growable: true);
+    List<Map<Bus, Route>> list = List.empty(growable: true);
     for (var route in routes) {
       routeNums[route.id] = route;
     }
     for (var bus in buses) {
-      list.add({bus.id:routeNums[bus.routeId]});
+      bus.routeName = routeNums[bus.routeId]?.name ?? "";
+      list.add({bus:(routeNums[bus.routeId] ?? Route(id: 0, name: ""))});
     }
     return list;
   }
@@ -133,31 +146,63 @@ class JagTran {
     }
     return busMap;
   }
-  Future<Image> getMap(int busId) async {
+  Future<Image> getMap(List<Bus> buses) async {
     Uint8List blankBytes = Base64Codec().decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
     Image placeholderImage = Image.memory(blankBytes, height: 1);
-    if (busId == 0) {
+    if (buses.isEmpty) {
       return placeholderImage;
     }
-    Map<int, Bus> buses = await getBuses();
-    Bus? bus = buses[busId];
+    double n = -1000;
+    double e = -1000;
+    double s = 1000;
+    double w = 1000;
+    //List<Map<double, double>> busLatLong = List.empty(growable: true);
+    StringBuffer latLongPairs = StringBuffer();
+    for (var bus in buses) {
+      n = (bus.lat > n) ? bus.lat : n;
+      s = (bus.lat < s) ? bus.lat : s;
+      e = (bus.long > e) ? bus.long : e;
+      w = (bus.long < w) ? bus.long : w;
+      String color;
+      switch (bus.routeName) {
 
-    if (bus != null) {
-      String apikey = await rootBundle.loadString("assets/api.key");
-      return Image.network(
-          "http://open.mapquestapi.com/staticmap/v4/getmap?key=$apikey&size=500,400&zoom=16&center=${bus
-              .lat},${bus.long}&pois=blue_1,${bus.lat},${bus.long},0,0");
+        case "Blue Route":
+          color = "0000ff";
+          break;
+        case "Green Route":
+          color = "008080";
+          break;
+        case "Red Route":
+          color = "ff0000";
+          break;
+        case "Yellow Route ":
+          color = "ffff00";
+          break;
+        case "Orange Route":
+          color = "ffa500";
+          break;
+        default:
+          color = "000000";
+          break;
+      }
+      latLongPairs.write("${bus.lat},${bus.long}|marker-$color||");
     }
-    else {
-      return placeholderImage;
-    }
+    String locations = latLongPairs.toString().substring(0,latLongPairs.length-2);
+    n += 0.005;
+    s -= 0.005;
+    e -= 0.005;
+    w += 0.005;
+
+    String apikey = await rootBundle.loadString("assets/api.key");
+    return Image.network("https://open.mapquestapi.com/staticmap/v5/map?key=$apikey&boundingBox=$n,$w,$s,$e&locations=$locations&margin=75");
   }
 }
 
 class Bus {
   final int id, routeId;
   final double lat, long;
-  const Bus({
+  late String routeName;
+  Bus({
     required this.id,
     required this.routeId,
     required this.lat,
